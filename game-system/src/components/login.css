@@ -1,0 +1,13 @@
+.login-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+  }
+  
+  .login-input {
+    width: 500px; /* Adjust the width as needed */
+    margin-bottom: 10px; /* Space between elements */
+  }
+  
