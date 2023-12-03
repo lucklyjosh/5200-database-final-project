@@ -21,13 +21,13 @@ function Login() {
         <div className="p-5 text-center bg-light login-container">
             <h1>Signin</h1>
             {error && <div className="alert alert-danger">{error}</div>}
-
             <input
                 value={user.username}
                 onChange={(e) => setUser({ ...user, username: e.target.value })}
                 placeholder="username"
                 className="form-control mb-2 text-center login-input"
             />
+            
             <input
                 value={user.password}
                 onChange={(e) => setUser({ ...user, password: e.target.value })}
@@ -38,8 +38,6 @@ function Login() {
             <button onClick={navigateTolibrary} className="btn btn-primary w-20">
                 Signin
             </button>
-
-
         </div>
 
     );

@@ -120,27 +120,27 @@ const Library = () => {
             {/* 添加游戏模态框 */}
             <Modal show={showAddModal} onHide={() => setShowAddModal(false)} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>添加新游戏</Modal.Title>
+                    <Modal.Title>Add New Game</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Form.Group className="mb-3" controlId="gameTitle">
-                            <Form.Label>游戏标题</Form.Label>
-                            <Form.Control type="text" placeholder="输入标题" name="title" value={newGame.title} onChange={handleInputChange} />
+                            <Form.Label>Game Title</Form.Label>
+                            <Form.Control type="text" placeholder="Game Title" name="title" value={newGame.title} onChange={handleInputChange} />
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="gameImageUrl">
-                            <Form.Label>游戏图片URL</Form.Label>
-                            <Form.Control type="text" placeholder="输入图片URL" name="imageUrl" value={newGame.imageUrl} onChange={handleInputChange} />
+                            <Form.Label>Upload IMG URL</Form.Label>
+                            <Form.Control type="text" placeholder="URL" name="imageUrl" value={newGame.imageUrl} onChange={handleInputChange} />
                         </Form.Group>
                         <Form.Group className="mb-3" controlId="gameDescription">
-                            <Form.Label>游戏描述</Form.Label>
-                            <Form.Control as="textarea" rows={3} placeholder="输入描述" name="description" value={newGame.description} onChange={handleInputChange} />
+                            <Form.Label>Game Description</Form.Label>
+                            <Form.Control as="textarea" rows={3} placeholder="Description" name="description" value={newGame.description} onChange={handleInputChange} />
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowAddModal(false)}>取消</Button>
-                    <Button variant="primary" onClick={handleAddGame}>添加游戏</Button>
+                    <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleAddGame}>Add Game</Button>
                 </Modal.Footer>
             </Modal>
 
