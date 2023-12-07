@@ -21,16 +21,17 @@ const SignUp = () => {
         .then(response => response.json())
         .then(data => {
             if (data.message === 'User registered successfully') {
-                navigate('/library'); 
+                // 注册成功，跳转到登录页面
+                navigate('/login'); 
             } else {
-                // error
+                // 处理错误，例如显示错误消息
+                console.error('Signup failed:', data.message);
             }
         })
         .catch((error) => {
             console.error('Error:', error);
         });
     };
-
     return (
 <form onSubmit={handleSubmit} className="p-5 text-center bg-light login-container">
     <h1>Signup</h1>

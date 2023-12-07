@@ -22,20 +22,42 @@ const Library = () => {
     const [editingReviewId, setEditingReviewId] = useState(null);
     const [editingReviewText, setEditingReviewText] = useState('');
     const currentUserID = localStorage.getItem('userId'); // 获取当前用户ID
+    const [genres, setGenres] = useState([]);
+    const [platforms, setPlatforms] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedGenres, setSelectedGenres] = useState([]);
+    const [filteredGames, setFilteredGames] = useState(allGames);
+
 
     useEffect(() => {
         fetch('http://127.0.0.1:5000/game')
             .then(response => response.json())
             .then(data => {
                 if (Array.isArray(data)) {
+                    console.log("Games:", data);
                     setAllGames(data);
                 } else {
                     console.error('Data is not an array:', data);
                 }
             })
             .catch(error => console.error('Error:', error));
+
+        // Get genre
+        fetch('http://127.0.0.1:5000/genres')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Genres:", data);
+            setGenres(data);
+        })
+        .catch(error => console.error('Error:', error));
+
+        // Get platform
+        fetch('http://127.0.0.1:5000/platforms')
+            .then(response => response.json())
+            .then(data => setPlatforms(data))
+            .catch(error => console.error('Error:', error));
     }, []);
-    
+
 
     const handleRatingChange = (newRating) => {
         setRating(newRating);
@@ -211,7 +233,7 @@ const Library = () => {
 
     const deleteReview = (reviewId) => {
         const userId = localStorage.getItem('userId'); // 获取当前登录用户的ID
-    
+
         fetch(`http://127.0.0.1:5000/review/${reviewId}`, {
             method: 'DELETE',
             headers: {
@@ -219,21 +241,21 @@ const Library = () => {
             },
             body: JSON.stringify({ user_id: userId })
         })
-        .then(response => {
-            if (response.ok) {
-                // successfully delete
-                alert('Review deleted successfully');
-            } else {
-                // fail delete
-                alert('Failed to delete review');
-                console.error('Failed to delete review');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+            .then(response => {
+                if (response.ok) {
+                    // successfully delete
+                    alert('Review deleted successfully');
+                } else {
+                    // fail delete
+                    alert('Failed to delete review');
+                    console.error('Failed to delete review');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     };
-    
+
 
     const startEdit = (review) => {
         setEditingReviewId(review.review_id);
@@ -250,7 +272,7 @@ const Library = () => {
             .then(response => {
                 if (response.ok) {
                     alert('Review updated successfully');
-                    setEditingReviewId(null); 
+                    setEditingReviewId(null);
                 } else {
                     alert('Failed to update review');
                 }
@@ -258,6 +280,39 @@ const Library = () => {
             .catch(error => console.error('Error:', error));
     };
 
+    const filterGames = () => {
+        let filtered = allGames.filter(game =>
+            game.title.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (selectedGenres.length > 0) {
+            filtered = filtered.filter(game =>
+                selectedGenres.includes(game.genre_id) // 假设游戏对象有 genre_id 属性
+            );
+        }
+        console.log("Filtered Games:", filtered);
+        setFilteredGames(filtered);
+    };
+
+
+    useEffect(() => {
+        const filterGames = () => {
+            let filtered = allGames.filter(game =>
+                game.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            if (selectedGenres.length > 0) {
+                filtered = filtered.filter(game =>
+                    selectedGenres.includes(game.genre_id)
+                );
+            }
+            console.log("Filtered Games:", filtered);
+            setFilteredGames(filtered);
+        };
+    
+        filterGames();
+    }, [searchTerm, selectedGenres, allGames]);
+    
+
+    
     return (
         <>
             {/* 导航栏 */}
@@ -326,8 +381,33 @@ const Library = () => {
                     <Modal.Title>Select a Game to Add</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    {/* 搜索框 */}
+                    <Form.Control
+                        type="text"
+                        placeholder="Search games"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="mb-3"
+                    />
+                    {/* 类别复选框 */}
+                    <div className="mb-3">
+                        {genres.map(genre => (
+                            <Form.Check
+                                key={genre.genre_id}
+                                type="checkbox"
+                                label={genre.genre_name}
+                                onChange={e => {
+                                    const updatedSelectedGenres = e.target.checked
+                                        ? [...selectedGenres, genre.genre_id]
+                                        : selectedGenres.filter(id => id !== genre.genre_id);
+                                    setSelectedGenres(updatedSelectedGenres);
+                                    console.log("Selected Genres:", updatedSelectedGenres);
+                                }}
+                            />
+                        ))}
+                    </div>
                     <ul>
-                        {allGames.map((game) => (
+                        {filteredGames.map((game) => (
                             <li key={game.game_id}>
                                 {game.title} - {game.release_date}
                                 {games.some((addedGame) => addedGame.game_id === game.game_id) ? (
@@ -345,6 +425,7 @@ const Library = () => {
                     <Button variant="secondary" onClick={() => setShowAddModal(false)}>Close</Button>
                 </Modal.Footer>
             </Modal>
+
 
 
 

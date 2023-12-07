@@ -37,7 +37,7 @@ class Game(db.Model):
     # developer_name = db.Column(db.String(255), nullable=False)
     publisher_id = db.Column(db.Integer, nullable=False)
     # category_id = db.Column(db.Integer, nullable=False)
-    genre_id = db.Column(db.Integer, nullable=False)
+    genre_id = db.Column(db.Integer, db.ForeignKey('genre.genre_id'), nullable=False)
 
     def __repr__(self):
         return f'<Game {self.game_title}>'
@@ -58,6 +58,21 @@ class Rating(db.Model):
     rating_value = db.Column(db.Integer, nullable=False)
     rating_date = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+class Genre(db.Model):
+    __tablename__ = 'genre'
+    genre_id = db.Column(db.Integer, primary_key=True)
+    genre_name = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f'<Genre {self.genre_name}>'
+
+class Platform(db.Model):
+    __tablename__ = 'platform'
+    platform_id = db.Column(db.Integer, primary_key=True)
+    platform_name = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f'<Platform {self.platform_name}>'
 
 
 # Create a new general ledger account
@@ -120,20 +135,6 @@ def delete_publisher(id):
     db.session.commit()
     return jsonify({'message': 'Publisher deleted successfully'})
 
-# Get all games
-# @app.route('/game', methods=['GET'])
-# def get_games():
-#     try:
-#         games = Game.query.all()
-#         games_data = [{
-#             'game_id': game.game_id,
-#             'title': game.game_title,
-#             'release_date': game.release_date.isoformat() if game.release_date else None,
-
-#         } for game in games]
-#         return jsonify(games_data), 200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
 @app.route('/game', methods=['GET'])
 def get_games():
     try:
@@ -143,7 +144,8 @@ def get_games():
             'game_id': game[0].game_id,  # Accessing Game object
             'title': game[0].game_title,
             'release_date': game[0].release_date.isoformat() if game[0].release_date else None,
-            'publisher_name': game[1].publisher_name  # Accessing Publisher object
+            'publisher_name': game[1].publisher_name,  # Accessing Publisher object
+            'genre_id': game[0].genre_id
         } for game in games]
         return jsonify(games_data), 200
     except Exception as e:
@@ -261,8 +263,29 @@ def delete_review(review_id):
     db.session.commit()
     return jsonify({'message': 'Review deleted successfully'})
 
+@app.route('/genres', methods=['GET'])
+def get_genres():
+    genres = Genre.query.all()
+    genre_data = [{'genre_id': genre.genre_id, 'genre_name': genre.genre_name} for genre in genres]
+    return jsonify(genre_data)
 
+@app.route('/platforms', methods=['GET'])
+def get_platforms():
+    platforms = Platform.query.all()
+    platform_data = [{'platform_id': platform.platform_id, 'platform_name': platform.platform_name} for platform in platforms]
+    return jsonify(platform_data)
 
+@app.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    users_data = [{'user_id': user.user_id, 'username': user.username, 'email': user.email} for user in users]
+    return jsonify(users_data)
+
+@app.route('/user/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user_data = {'user_id': user.user_id, 'username': user.username, 'email': user.email}
+    return jsonify(user_data)
 
 
 if __name__ == '__main__':
