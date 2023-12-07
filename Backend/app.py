@@ -38,7 +38,8 @@ class Game(db.Model):
     publisher_id = db.Column(db.Integer, nullable=False)
     # category_id = db.Column(db.Integer, nullable=False)
     genre_id = db.Column(db.Integer, db.ForeignKey('genre.genre_id'), nullable=False)
-
+    game_platforms = db.relationship('GamePlatform', back_populates='game')
+    platforms = db.relationship('GamePlatform', back_populates='game')
     def __repr__(self):
         return f'<Game {self.game_title}>'
 
@@ -70,10 +71,23 @@ class Platform(db.Model):
     __tablename__ = 'platform'
     platform_id = db.Column(db.Integer, primary_key=True)
     platform_name = db.Column(db.String(255), nullable=False)
-
+    games = db.relationship('GamePlatform', back_populates='platform')
     def __repr__(self):
         return f'<Platform {self.platform_name}>'
 
+class GamePlatform(db.Model):
+    __tablename__ = 'GamePlatform'
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
+    platform_id = db.Column(db.Integer, db.ForeignKey('platform.platform_id'), primary_key=True)
+    game = db.relationship('Game', back_populates='game_platforms')
+    platform = db.relationship('Platform', backref='game_platforms')
+
+class User(db.Model):
+    __tablename__ = 'users'  
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(255))
 
 # Create a new general ledger account
 @app.route('/account', methods=['POST'])
@@ -138,27 +152,39 @@ def delete_publisher(id):
 @app.route('/game', methods=['GET'])
 def get_games():
     try:
-        # Join the Game table with the Publisher table
-        games = db.session.query(Game, Publisher).join(Publisher, Game.publisher_id == Publisher.publisher_id).all()
-        games_data = [{
-            'game_id': game[0].game_id,  # Accessing Game object
-            'title': game[0].game_title,
-            'release_date': game[0].release_date.isoformat() if game[0].release_date else None,
-            'publisher_name': game[1].publisher_name,  # Accessing Publisher object
-            'genre_id': game[0].genre_id
-        } for game in games]
+        games = db.session.query(Game, Publisher, Platform).join(
+            Publisher, Game.publisher_id == Publisher.publisher_id
+        ).join(
+            GamePlatform, Game.game_id == GamePlatform.game_id
+        ).join(
+            Platform, GamePlatform.platform_id == Platform.platform_id
+        ).all()
+
+        games_data = []
+        for game in games:
+            game_info = {
+                'game_id': game[0].game_id,
+                'title': game[0].game_title,
+                'release_date': game[0].release_date.isoformat() if game[0].release_date else None,
+                'publisher_name': game[1].publisher_name,
+                'genre_id': game[0].genre_id,
+                'platforms': []  # You'll need to collect platforms for each game
+            }
+            # Check if this game_id is already in games_data
+            existing_game = next((item for item in games_data if item["game_id"] == game_info["game_id"]), None)
+            if existing_game:
+                # If already exists, just append the platform
+                existing_game['platforms'].append(game[2].platform_name)
+            else:
+                # If not exists, add the game with the first platform
+                game_info['platforms'].append(game[2].platform_name)
+                games_data.append(game_info)
+
         return jsonify(games_data), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-# 用户模型
-class User(db.Model):
-    __tablename__ = 'users'  
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    password_hash = db.Column(db.String(255))
 
 @app.route('/signup', methods=['POST'])
 def signup():

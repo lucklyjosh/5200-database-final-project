@@ -36,6 +36,11 @@ const Library = () => {
                 if (Array.isArray(data)) {
                     console.log("Games:", data);
                     setAllGames(data);
+                    // 如果有平台信息，这里也设置平台信息
+                    data.forEach(game => {
+                        // 假设后端返回的数据中包含平台信息
+                        console.log(`Game: ${game.title}, Platform: ${game.platform_name}`);
+                    });
                 } else {
                     console.error('Data is not an array:', data);
                 }
@@ -44,12 +49,12 @@ const Library = () => {
 
         // Get genre
         fetch('http://127.0.0.1:5000/genres')
-        .then(response => response.json())
-        .then(data => {
-            console.log("Genres:", data);
-            setGenres(data);
-        })
-        .catch(error => console.error('Error:', error));
+            .then(response => response.json())
+            .then(data => {
+                console.log("Genres:", data);
+                setGenres(data);
+            })
+            .catch(error => console.error('Error:', error));
 
         // Get platform
         fetch('http://127.0.0.1:5000/platforms')
@@ -114,7 +119,7 @@ const Library = () => {
         const isGameInLibrary = games.some((libraryGame) => libraryGame.game_id === game.game_id);
 
         if (isGameInLibrary) {
-            alert('该游戏已在库中。');
+            alert('Game is already added');
             return;
         }
 
@@ -147,7 +152,8 @@ const Library = () => {
 
     // 打开模态窗口的函数，设置选中的游戏
     const openModal = (game) => {
-        setSelectedGame(game);
+        const gameWithPlatforms = allGames.find(g => g.game_id === game.game_id);
+        setSelectedGame(gameWithPlatforms);
         fetchReviews(game.game_id);
         setShowModal(true);
     };
@@ -195,7 +201,7 @@ const Library = () => {
         const isGameInLibrary = games.some((libraryGame) => libraryGame.game_id === game.game_id);
 
         if (!isGameInLibrary) {
-            alert('该游戏不在库中。');
+            alert('Game is not in your library');
             return;
         }
 
@@ -216,7 +222,7 @@ const Library = () => {
 
     // 确认删除游戏
     const confirmDeleteGame = (game) => {
-        const confirmDelete = window.confirm(`确定要删除游戏 "${game.title}" 吗？`);
+        const confirmDelete = window.confirm(`Are you confirm to delete "${game.title}" ?`);
         if (confirmDelete) {
             handleDeleteGame(game.id);
         }
@@ -307,12 +313,12 @@ const Library = () => {
             console.log("Filtered Games:", filtered);
             setFilteredGames(filtered);
         };
-    
+
         filterGames();
     }, [searchTerm, selectedGenres, allGames]);
-    
 
-    
+
+
     return (
         <>
             {/* 导航栏 */}
@@ -427,14 +433,6 @@ const Library = () => {
             </Modal>
 
 
-
-
-            {/* 
-            <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={handleAddGame}>Add Game</Button>
-                </Modal.Footer> */}
-
             {/* 游戏详情模态窗口 */}
             <Modal show={showModal} onHide={closeModal} size="lg" centered>
                 <Modal.Header closeButton>
@@ -444,7 +442,8 @@ const Library = () => {
                     <p>{selectedGame?.description}</p>
                     <p>Release Date: {selectedGame?.release_date}</p>
                     <p>Publisher: {selectedGame?.publisher_name}</p>
-                    <p>当前用户ID: {currentUserID}</p>
+                    <p>Platforms: {selectedGame?.platforms.join(", ")}</p>
+                    <p>Current User ID: {currentUserID}</p>
                     <ReactStars
                         count={5}
                         onChange={handleRatingChange}
@@ -454,9 +453,7 @@ const Library = () => {
                     <div className="reviews">
                         {reviews.map((review) => (
                             <div key={review.review_id} className="review-item">
-                                {/* 其他内容 */}
                                 <strong>{review.username}</strong>: {review.review_text}
-                                {/* <p>评论: {review.review_text} (用户ID: {review.user_id})</p> */}
                                 {review.review_id === editingReviewId ? (
                                     <div>
                                         <textarea value={editingReviewText} onChange={(e) => setEditingReviewText(e.target.value)} />
@@ -465,7 +462,6 @@ const Library = () => {
                                     </div>
                                 ) : (
                                     <div>
-                                        {/* <p>{review.review_text}</p> */}
                                         {parseInt(review.user_id, 10) === parseInt(localStorage.getItem('userId'), 10) && (
                                             <div className="buttons-container">
                                                 <Button onClick={() => startEdit(review)}>Edit</Button>
