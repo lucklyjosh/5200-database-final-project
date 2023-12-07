@@ -8,13 +8,31 @@ function Login() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-
-    const navigateTolibrary = () => {
-        // Implement login logic here
-        navigate('/library'); // Navigate to game library after login
-    };
+    const signup = async () => {
+        navigate('/signup')
+    }
 
     const signin = async () => {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username: user.username, password: user.password }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('userId', data.user_id); // 确保这里使用的键名与读取时相同
+                navigate('/library');
+            
+            } else {
+                setError(data.message || 'Login failed');
+            }
+        } catch (error) {
+            setError('Login failed. Please try again.');
+        }
     };
 
     return (
@@ -27,7 +45,7 @@ function Login() {
                 placeholder="username"
                 className="form-control mb-2 text-center login-input"
             />
-            
+
             <input
                 value={user.password}
                 onChange={(e) => setUser({ ...user, password: e.target.value })}
@@ -35,8 +53,12 @@ function Login() {
                 placeholder="password"
                 className="form-control mb-2 text-center login-input"
             />
-            <button onClick={navigateTolibrary} className="btn btn-primary w-20">
+            <button onClick={signin} className="btn btn-primary w-20">
                 Signin
+            </button>
+
+            <button onClick={signup} className="btn btn-primary w-20 mt-3">
+                Signup
             </button>
         </div>
 

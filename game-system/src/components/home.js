@@ -8,7 +8,9 @@ function Home() {
     navigate('/login');
   };
 
-
+  const navigateToSignUp = () => {
+    navigate('/signup');
+  };
   return (
     <Container>
       <header className="p-5 text-center bg-light">
@@ -18,7 +20,9 @@ function Home() {
         <div className="mt-2">
         <Button onClick={navigateToLogin}>Login</Button>
         </div>
-   
+        <div className="mt-2">
+        <Button onClick={navigateToSignUp}>SignUp</Button>
+        </div>
       </header>
 
       {/* Additional content goes here */}

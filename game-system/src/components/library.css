@@ -1,0 +1,55 @@
+.reviews {
+    margin-top: 20px;
+}
+
+.review-item {
+    display: flex;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    
+}
+
+.review-user-info {
+    margin-right: 20px;
+    text-align: center;
+}
+
+.user-avatar {
+    width: 50px; /* 调整为合适的尺寸 */
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.review-content {
+    flex-grow: 1;
+}
+
+.review-content p {
+    margin-top: 0;
+}
+
+.game-card {
+    position: relative;
+}
+
+.card-actions {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.card-actions button {
+    /* 添加按钮样式，比如背景色、边距、字体大小等 */
+}
+
+.buttons-container {
+    display: flex !important;
+    justify-content: flex-end !important;
+}
+
