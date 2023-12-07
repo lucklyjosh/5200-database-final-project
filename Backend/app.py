@@ -1,7 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+CORS(app)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Wen%402200808@localhost:3306/gamedatabase'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -23,6 +27,38 @@ class GeneralLedgerAccount(db.Model):
 
     def __repr__(self):
         return '<GeneralLedgerAccount %r>' % self.account_description
+    
+# Model for the Game table
+class Game(db.Model):
+    __tablename__ = 'game'
+    game_id = db.Column(db.Integer, primary_key=True)
+    game_title = db.Column(db.String(255), nullable=False)
+    release_date = db.Column(db.Date)
+    # developer_name = db.Column(db.String(255), nullable=False)
+    publisher_id = db.Column(db.Integer, nullable=False)
+    # category_id = db.Column(db.Integer, nullable=False)
+    genre_id = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<Game {self.game_title}>'
+
+class Review(db.Model):
+    __tablename__ = 'review'
+    review_id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    review_text = db.Column(db.Text)
+    review_date = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+class Rating(db.Model):
+    __tablename__ = 'rating'
+    rating_id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    rating_value = db.Column(db.Integer, nullable=False)
+    rating_date = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
 
 # Create a new general ledger account
 @app.route('/account', methods=['POST'])
@@ -55,15 +91,15 @@ def add_publisher():
     db.session.commit()
     return jsonify({'message': 'Publisher created successfully'}), 201
 
-# Get all publishers
-@app.route('/publishers', methods=['GET'])
-def get_publishers():
-    publishers = Publisher.query.all()
-    return jsonify([{'publisher_id': p.publisher_id, 'publisher_name': p.publisher_name} for p in publishers])
+# Get all publisher
+@app.route('/publisher', methods=['GET'])
+def get_all_publishers():
+    publisher = Publisher.query.all()
+    return jsonify([{'publisher_id': p.publisher_id, 'publisher_name': p.publisher_name} for p in publisher])
 
 # Get a single publisher by ID
 @app.route('/publisher/<int:id>', methods=['GET'])
-def get_publisher(id):
+def get_publisher_by_id(id):
     publisher = Publisher.query.get_or_404(id)
     return jsonify({'publisher_id': publisher.publisher_id, 'publisher_name': publisher.publisher_name})
 
@@ -83,6 +119,151 @@ def delete_publisher(id):
     db.session.delete(publisher)
     db.session.commit()
     return jsonify({'message': 'Publisher deleted successfully'})
+
+# Get all games
+# @app.route('/game', methods=['GET'])
+# def get_games():
+#     try:
+#         games = Game.query.all()
+#         games_data = [{
+#             'game_id': game.game_id,
+#             'title': game.game_title,
+#             'release_date': game.release_date.isoformat() if game.release_date else None,
+
+#         } for game in games]
+#         return jsonify(games_data), 200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+@app.route('/game', methods=['GET'])
+def get_games():
+    try:
+        # Join the Game table with the Publisher table
+        games = db.session.query(Game, Publisher).join(Publisher, Game.publisher_id == Publisher.publisher_id).all()
+        games_data = [{
+            'game_id': game[0].game_id,  # Accessing Game object
+            'title': game[0].game_title,
+            'release_date': game[0].release_date.isoformat() if game[0].release_date else None,
+            'publisher_name': game[1].publisher_name  # Accessing Publisher object
+        } for game in games]
+        return jsonify(games_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# 用户模型
+class User(db.Model):
+    __tablename__ = 'users'  
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(255))
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
+
+    # 检查用户名是否已存在
+    existing_user = User.query.filter_by(username=data['username']).first()
+    if existing_user:
+        return jsonify({'message': 'Username already exists'}), 400
+
+    try:
+        hashed_password = generate_password_hash(data['password'])
+        new_user = User(username=data['username'], email=data['email'], password_hash=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message': 'User registered successfully', 'user_id': new_user.user_id}), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    user = User.query.filter_by(username=data['username']).first()
+    if user and check_password_hash(user.password_hash, data['password']):
+        return jsonify({'message': 'Login successful', 'user_id': user.user_id}), 200
+    else:
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+
+
+@app.route('/game/review', methods=['POST'])
+def add_review():
+    data = request.json
+    if 'game_id' not in data:
+        return jsonify({'error': 'Missing game_id'}), 400 
+    new_review = Review(
+        game_id=data['game_id'],
+        user_id=data['user_id'],
+        # rating=data['rating'],
+        review_text=data['review_text']
+    )
+    db.session.add(new_review)
+    db.session.commit()
+    return jsonify({'message': 'Review added successfully'}), 201
+
+
+
+@app.route('/game/review', methods=['GET'])
+def get_reviews():
+    # 实现获取评论的逻辑
+    reviews = Review.query.all()  # 示例查询
+    return jsonify([review.to_dict() for review in reviews])  # 假设 Review 有一个 to_dict 方法
+
+@app.route('/game/<int:game_id>/reviews', methods=['GET'])
+def get_game_reviews(game_id):
+    # 这里假设你有一种方法来获取特定游戏的评论
+    # 以及评论对应的用户信息（如用户名）
+    reviews = Review.query.filter_by(game_id=game_id).all()
+    reviews_data = []
+    for review in reviews:
+        user = User.query.get(review.user_id)
+        reviews_data.append({
+            "username": user.username,
+            "review_text": review.review_text,
+            "review_id": review.review_id,
+            # "rating": review.rating,  # 如果有评分系统的话
+            "user_id": user.user_id
+        })
+    return jsonify(reviews_data)
+
+# update review
+@app.route('/review/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    data = request.json
+    review = Review.query.get_or_404(review_id)
+
+    print("Received user_id:", data['user_id'])
+    print("Review's user_id:", review.user_id)
+
+    # 可以添加检查确保只有评论的作者可以更新它
+    if str(review.user_id) != data.get('user_id'):
+        return jsonify({'message': 'Unauthorized'}), 403
+    
+    review.review_text = data.get('review_text', review.review_text)
+    db.session.commit()
+    return jsonify({'message': 'Review updated successfully'})
+
+@app.route('/review/<int:review_id>', methods=['DELETE'])
+def delete_review(review_id):
+    review = Review.query.get_or_404(review_id)
+    data = request.get_json()
+    
+    # 添加日志打印以检查接收到的数据
+    print("Received user_id:", data.get('user_id'))
+    print("Review's user_id:", review.user_id)
+
+    if 'user_id' not in data or str(review.user_id) != data['user_id']:
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    db.session.delete(review)
+    db.session.commit()
+    return jsonify({'message': 'Review deleted successfully'})
+
+
+
+
 
 if __name__ == '__main__':
     with app.app_context():

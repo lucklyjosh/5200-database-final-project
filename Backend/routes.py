@@ -1,6 +1,8 @@
 from flask import request, jsonify
+
 from app import app, db
 from models import Publisher
+from models import Game
 
 # Create a new publisher
 @app.route('/publisher', methods=['POST'])
@@ -43,3 +45,20 @@ def delete_publisher(id):
     db.session.delete(publisher)
     db.session.commit()
     return jsonify({'message': 'Publisher deleted successfully'})
+
+# Get all games
+@app.route('/game', methods=['GET'])
+def get_games():
+    try:
+        games = Game.query.all()
+        games_data = [{
+            'game_id': game.game_id,
+            'title': game.game_title,
+            'release_date': game.release_date.isoformat() if game.release_date else None,
+            # 'publisher': game.publisher.publisher_name,  # Uncomment if you have set up relationships
+            # ... similarly include category and genre if needed
+        } for game in games]
+        return jsonify(games_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
