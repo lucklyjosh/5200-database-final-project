@@ -28,9 +28,9 @@ Before you begin, ensure you have the following installed:
    npm install react-router-dom
    npm install bootstrap
 3. **Connect to database**:
-In __app.py line 10__ make sure to switch <username> and <password> to your own <username> and <password>
+In __app.py line 10__ make sure to switch <username> and <password> to your own username and password
    ```bash
-   app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://<username>:<password>@localhost:3306/gamedatabase'
+   app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://username:password@localhost:3306/gamedatabase'
    ```
 
 4. **Run server&application**:
