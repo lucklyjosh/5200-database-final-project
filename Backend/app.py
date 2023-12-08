@@ -11,6 +11,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Wen%4022008
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+game_platform_table = db.Table('gameplatform',
+    db.Column('game_id', db.Integer, db.ForeignKey('game.game_id'), primary_key=True),
+    db.Column('platform_id', db.Integer, db.ForeignKey('platform.platform_id'), primary_key=True)
+)
+
 # Model for the Publisher table
 class Publisher(db.Model):
     publisher_id = db.Column(db.Integer, primary_key=True)
@@ -35,11 +40,15 @@ class Game(db.Model):
     game_title = db.Column(db.String(255), nullable=False)
     release_date = db.Column(db.Date)
     # developer_name = db.Column(db.String(255), nullable=False)
-    publisher_id = db.Column(db.Integer, nullable=False)
+    # publisher_id = db.Column(db.Integer, nullable=False)
+    publisher_id = db.Column(db.Integer, db.ForeignKey('publisher.publisher_id'))
+    publisher = db.relationship('Publisher', backref='games')
     # category_id = db.Column(db.Integer, nullable=False)
     genre_id = db.Column(db.Integer, db.ForeignKey('genre.genre_id'), nullable=False)
-    game_platforms = db.relationship('GamePlatform', back_populates='game')
-    platforms = db.relationship('GamePlatform', back_populates='game')
+    # game_platforms = db.relationship('GamePlatform', backref='game')
+    platforms = db.relationship('Platform', secondary=game_platform_table, back_populates='games')
+    game_images = db.relationship('GameImage', back_populates='game')
+    favorited_by = db.relationship('UserFavoriteGames', back_populates='game')
     def __repr__(self):
         return f'<Game {self.game_title}>'
 
@@ -71,16 +80,15 @@ class Platform(db.Model):
     __tablename__ = 'platform'
     platform_id = db.Column(db.Integer, primary_key=True)
     platform_name = db.Column(db.String(255), nullable=False)
-    games = db.relationship('GamePlatform', back_populates='platform')
+    games = db.relationship('Game', secondary=game_platform_table, back_populates='platforms')
+    # game_platforms = db.relationship('GamePlatform', backref='platform')
     def __repr__(self):
         return f'<Platform {self.platform_name}>'
 
-class GamePlatform(db.Model):
-    __tablename__ = 'GamePlatform'
-    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
-    platform_id = db.Column(db.Integer, db.ForeignKey('platform.platform_id'), primary_key=True)
-    game = db.relationship('Game', back_populates='game_platforms')
-    platform = db.relationship('Platform', backref='game_platforms')
+# class GamePlatform(db.Model):
+#     __tablename__ = 'gameplatform'
+#     game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
+#     platform_id = db.Column(db.Integer, db.ForeignKey('platform.platform_id'), primary_key=True)
 
 class User(db.Model):
     __tablename__ = 'users'  
@@ -88,6 +96,38 @@ class User(db.Model):
     username = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     password_hash = db.Column(db.String(255))
+    favorite_games = db.relationship('UserFavoriteGames', back_populates='user')
+class Image(db.Model):
+    __tablename__ = 'images'
+    image_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    image_address = db.Column(db.String(999), nullable=False)
+    image_description = db.Column(db.Text)
+    game_images = db.relationship('GameImage', back_populates='image')
+    
+    def __repr__(self):
+        return f'<Image {self.image_id}>'
+    
+class GameImage(db.Model):
+    __tablename__ = 'gameimage'
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('images.image_id'), primary_key=True)
+    game = db.relationship('Game', back_populates='game_images')
+    image = db.relationship('Image', back_populates='game_images')
+
+class UserFavoriteGames(db.Model):
+    __tablename__ = 'userfavoritegames'  # 确保这与您的实际表名匹配
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
+
+    # 可以添加关系来方便访问关联的 User 和 Game 对象
+    user = db.relationship('User', back_populates='favorite_games')
+    game = db.relationship('Game', back_populates='favorited_by')
+
+    def __repr__(self):
+        return f'<UserFavoriteGames user_id={self.user_id}, game_id={self.game_id}>'
+
+
+
 
 # Create a new general ledger account
 @app.route('/account', methods=['POST'])
@@ -155,34 +195,60 @@ def get_games():
         games = db.session.query(Game, Publisher, Platform).join(
             Publisher, Game.publisher_id == Publisher.publisher_id
         ).join(
-            GamePlatform, Game.game_id == GamePlatform.game_id
+            game_platform_table, Game.game_id == game_platform_table.c.game_id
         ).join(
-            Platform, GamePlatform.platform_id == Platform.platform_id
+            Platform, game_platform_table.c.platform_id == Platform.platform_id
         ).all()
 
-        games_data = []
-        for game in games:
-            game_info = {
-                'game_id': game[0].game_id,
-                'title': game[0].game_title,
-                'release_date': game[0].release_date.isoformat() if game[0].release_date else None,
-                'publisher_name': game[1].publisher_name,
-                'genre_id': game[0].genre_id,
-                'platforms': []  # You'll need to collect platforms for each game
-            }
-            # Check if this game_id is already in games_data
-            existing_game = next((item for item in games_data if item["game_id"] == game_info["game_id"]), None)
-            if existing_game:
-                # If already exists, just append the platform
-                existing_game['platforms'].append(game[2].platform_name)
-            else:
-                # If not exists, add the game with the first platform
-                game_info['platforms'].append(game[2].platform_name)
-                games_data.append(game_info)
+        games_data = {}
+        for game, publisher, platform in games:
+            if game.game_id not in games_data:
+                games_data[game.game_id] = {
+                    'game_id': game.game_id,
+                    'title': game.game_title,
+                    'release_date': game.release_date.isoformat() if game.release_date else None,
+                    'publisher_name': publisher.publisher_name,
+                    'genre_id': game.genre_id,
+                    'platforms': [],
+                    'images': []
+                }
+            games_data[game.game_id]['platforms'].append(platform.platform_name)
 
-        return jsonify(games_data), 200
+            # 获取每个游戏的图片信息
+            images = GameImage.query.filter_by(game_id=game.game_id).join(Image).all()
+            for game_image in images:
+                games_data[game.game_id]['images'].append({
+                    'image_id': game_image.image.image_id,
+                    'image_address': game_image.image.image_address,
+                    'image_description': game_image.image.image_description
+                })
+
+        return jsonify(list(games_data.values())), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/images', methods=['GET'])
+def get_all_images():
+    try:
+        images = Image.query.all()
+        images_data = [{'image_id': image.image_id, 'image_address': image.image_address, 'image_description': image.image_description} for image in images]
+        return jsonify(images_data), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/game/<int:game_id>/images', methods=['GET'])
+def get_game_images(game_id):
+    try:
+        game_images = GameImage.query.filter_by(game_id=game_id).join(Image, GameImage.image_id == Image.image_id).all()
+        images_data = [{'image_id': gi.image.image_id, 'image_address': gi.image.image_address, 'image_description': gi.image.image_description} for gi in game_images]
+        return jsonify(images_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 
 
 
@@ -312,6 +378,49 @@ def get_user(user_id):
     user = User.query.get_or_404(user_id)
     user_data = {'user_id': user.user_id, 'username': user.username, 'email': user.email}
     return jsonify(user_data)
+
+# 添加游戏到用户收藏
+@app.route('/user/<int:user_id>/add_favorite/<int:game_id>', methods=['POST'])
+def add_game_to_favorites(user_id, game_id):
+    try:
+        new_favorite = UserFavoriteGames(user_id=user_id, game_id=game_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({'message': 'Game added to favorites successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# 获取用户的收藏游戏列表
+@app.route('/user/<int:user_id>/favorites', methods=['GET'])
+def get_user_favorite_games(user_id):
+    try:
+        favorite_games = UserFavoriteGames.query.filter_by(user_id=user_id).join(Game).join(Publisher).all()
+        games_data = [
+            {
+                'game_id': fg.game.game_id,
+                'title': fg.game.game_title,
+                # 添加您想要返回的其他游戏信息
+                'release_date': fg.game.release_date.isoformat() if fg.game.release_date else None,
+                'publisher': fg.game.publisher.publisher_name if fg.game.publisher else None,
+                # 可以继续添加其他属性
+            }
+            for fg in favorite_games
+        ]
+        return jsonify(games_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/user/<int:user_id>/favorite/<int:game_id>', methods=['DELETE'])
+def delete_favorite_game(user_id, game_id):
+    # 在这里实现删除逻辑
+    favorite_game = UserFavoriteGames.query.filter_by(user_id=user_id, game_id=game_id).first()
+    if favorite_game:
+        db.session.delete(favorite_game)
+        db.session.commit()
+        return jsonify({'message': 'Favorite game deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Favorite game not found'}), 404
+
 
 
 if __name__ == '__main__':

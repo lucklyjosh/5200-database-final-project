@@ -125,6 +125,7 @@ const Library = () => {
 
         // 添加游戏到用户界面
         setGames([...games, game]);
+        handleAddGameToFavorites(game);
         setShowAddModal(false); // 关闭模态框
     };
 
@@ -145,12 +146,6 @@ const Library = () => {
         // 根据选择执行动作(如：退出登录、查看个人资料等)
     };
 
-
-
-
-
-
-    // 打开模态窗口的函数，设置选中的游戏
     const openModal = (game) => {
         const gameWithPlatforms = allGames.find(g => g.game_id === game.game_id);
         setSelectedGame(gameWithPlatforms);
@@ -168,66 +163,46 @@ const Library = () => {
         setNewGame({ ...newGame, [name]: value });
     };
 
-    // 添加游戏的函数
-    // const handleAddGame = () => {
-    //     setGames([...games, { ...newGame, id: Date.now() }]); 
-    //     setNewGame({ title: '', imageUrl: '', description: '' }); 
-    //     setShowAddModal(false); 
-    // };
+
     const handleAddGame = (game) => {
-        // 检查游戏是否已经存在于库中
+        // Check game if already in
         if (games.some((addedGame) => addedGame.game_id === game.game_id)) {
-            // 游戏已经存在，设置错误消息
+            // If it is send error
             setErrorMessage('This game is already in your library');
         } else {
-            // 游戏不存在，添加到用户的库中
-            setGames((prevGames) => [...prevGames, game]); // 使用函数形式更新状态
-            setShowAddModal(false); // 关闭模态框
-            // 清除错误消息
+            // if not add it
+            setGames((prevGames) => [...prevGames, game]); 
+            handleAddGameToFavorites(game); // Add to user's info database table
+            setShowAddModal(false); 
             setErrorMessage('');
         }
     };
 
-    const clearErrorMessage = () => {
-        setErrorMessage('');
-    };
 
-    // 删除游戏的函数
-    // const handleDeleteGame = (gameId) => {
-    //     setGames(games.filter(game => game.id !== gameId));
-    // };
     const handleDeleteGame = (game) => {
-        // 检查游戏是否已在库中
-        const isGameInLibrary = games.some((libraryGame) => libraryGame.game_id === game.game_id);
-
-        if (!isGameInLibrary) {
-            alert('Game is not in your library');
-            return;
-        }
-
-        // 从用户界面中删除游戏
-        setGames(games.filter((libraryGame) => libraryGame.game_id !== game.game_id));
+        const userId = localStorage.getItem('userId'); // 获取当前用户ID
+    
+        fetch(`http://127.0.0.1:5000/user/${userId}/favorite/${game.game_id}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (response.ok) {
+                // 删除成功，更新前端状态
+                setGames(previousGames => previousGames.filter(g => g.game_id !== game.game_id));
+                console.log('Favorite game deleted successfully');
+            } else {
+                throw new Error('Failed to delete the favorite game');
+            }
+        })
+        .catch(error => console.error('Error:', error));
     };
+    
 
-    // 更新游戏的函数
-    const handleUpdateGame = (gameId) => {
-        // 实现更新游戏的逻辑
-        // 例如，打开一个表单模态窗口来修改游戏的信息
-    };
 
-    // 显示添加游戏模态框
+    // show Game Modal
     const showAddGameModal = () => {
         setShowAddModal(true);
     };
-
-    // 确认删除游戏
-    const confirmDeleteGame = (game) => {
-        const confirmDelete = window.confirm(`Are you confirm to delete "${game.title}" ?`);
-        if (confirmDelete) {
-            handleDeleteGame(game.id);
-        }
-    };
-
 
     const fetchReviews = (gameId) => {
         fetch(`http://127.0.0.1:5000/game/${gameId}/reviews`)
@@ -238,7 +213,7 @@ const Library = () => {
 
 
     const deleteReview = (reviewId) => {
-        const userId = localStorage.getItem('userId'); // 获取当前登录用户的ID
+        const userId = localStorage.getItem('userId'); // Get current user id
 
         fetch(`http://127.0.0.1:5000/review/${reviewId}`, {
             method: 'DELETE',
@@ -292,7 +267,7 @@ const Library = () => {
         );
         if (selectedGenres.length > 0) {
             filtered = filtered.filter(game =>
-                selectedGenres.includes(game.genre_id) // 假设游戏对象有 genre_id 属性
+                selectedGenres.includes(game.genre_id) 
             );
         }
         console.log("Filtered Games:", filtered);
@@ -317,23 +292,53 @@ const Library = () => {
         filterGames();
     }, [searchTerm, selectedGenres, allGames]);
 
+    const handleAddGameToFavorites = (game) => {
+        const userId = localStorage.getItem('userId');
+        console.log('Adding game to favorites:', game);
+        fetch(`http://127.0.0.1:5000/user/${userId}/add_favorite/${game.game_id}`, {
+            method: 'POST',
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Game added to favorites successfully');
+                } else {
+                    alert('Failed to add game to favorites');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding game to favorites');
+            });
+    };
+
+
+
+
+
+    useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            fetch(`http://127.0.0.1:5000/user/${userId}/favorites`)
+                .then(response => response.json())
+                .then(data => {
+                    setGames(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }, []);
+
+
+
 
 
     return (
         <>
-            {/* 导航栏 */}
+            {/* Nav bar*/}
             <Navbar bg="dark" variant="dark" expand="lg">
                 <Container>
                     <Navbar.Brand href="#home">Game Library</Navbar.Brand>
-                    {/* <Nav className="me-auto">
-                        <Nav.Link href="#action">Action</Nav.Link>
-                        <Nav.Link href="#adventure">Adventure</Nav.Link>
-                    </Nav> */}
                     <Nav>
-                        <NavDropdown title={<img src="/path-to-account-image.png" alt="Account" />} id="account-dropdown">
-                            <NavDropdown.Item onClick={() => handleAccountClick('profile')}>Profile</NavDropdown.Item>
-                            <NavDropdown.Item onClick={() => handleAccountClick('logout')}>Logout</NavDropdown.Item>
-                        </NavDropdown>
+                        <Nav.Link onClick={() => handleAccountClick('logout')}>Logout</Nav.Link>
                     </Nav>
                 </Container>
             </Navbar>
@@ -342,21 +347,6 @@ const Library = () => {
                 <Button onClick={showAddGameModal}>Add Game</Button>
             </Container>
 
-            {/* 游戏卡片 */}
-            {/* <Container>
-                <Row xs={1} md={2} lg={4} className="g-4 mt-3">
-                    {games.map((game) => (
-                        <Col key={game.id} onClick={() => openModal(game)}>
-                            <Card className="h-100 cursor-pointer">
-                                <Card.Img variant="top" src={game.imageUrl} />
-                                <Card.Body>
-                                    <Card.Title>{game.title}</Card.Title>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-            </Container> */}
             <Container>
                 <Row xs={1} md={2} lg={4} className="g-4 mt-3">
                     {games.map((game) => (
@@ -365,9 +355,7 @@ const Library = () => {
                                 <Card.Img variant="top" src={game.imageUrl || defaultImage} />
                                 <Card.Body>
                                     <Card.Title>{game.title}</Card.Title>
-                                    {/* 游戏其他信息 */}
                                 </Card.Body>
-                                {/* 假设 USER_ID 是当前登录用户的 ID */}
                                 {game.user_id === localStorage.getItem('userId') && (
                                     <div className="card-actions">
                                         <button onClick={() => handleDeleteGame(game)}>Delete</button>
@@ -381,13 +369,13 @@ const Library = () => {
 
 
 
-            {/* 添加游戏模态框 */}
+            {/* Add game window */}
             <Modal show={showAddModal} onHide={() => setShowAddModal(false)} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Select a Game to Add</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {/* 搜索框 */}
+                    {/* Search */}
                     <Form.Control
                         type="text"
                         placeholder="Search games"
@@ -395,7 +383,7 @@ const Library = () => {
                         onChange={e => setSearchTerm(e.target.value)}
                         className="mb-3"
                     />
-                    {/* 类别复选框 */}
+                    {/* Check box */}
                     <div className="mb-3">
                         {genres.map(genre => (
                             <Form.Check
@@ -433,7 +421,7 @@ const Library = () => {
             </Modal>
 
 
-            {/* 游戏详情模态窗口 */}
+            {/* Detail window */}
             <Modal show={showModal} onHide={closeModal} size="lg" centered>
                 <Modal.Header closeButton>
                     <Modal.Title>{selectedGame?.title}</Modal.Title>
@@ -487,9 +475,6 @@ const Library = () => {
                 <Modal.Footer>
                     <Button variant="danger" onClick={() => handleDeleteGame(selectedGame)}>
                         Delete
-                    </Button>
-                    <Button variant="primary" onClick={() => handleUpdateGame(selectedGame?.id)}>
-                        Edit
                     </Button>
                     <Button variant="secondary" onClick={closeModal}>
                         Close

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Navbar, Nav, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useState } from "react";
 import './login.css';
@@ -24,7 +25,7 @@ function Login() {
 
             const data = await response.json();
             if (response.ok) {
-                localStorage.setItem('userId', data.user_id); // 确保这里使用的键名与读取时相同
+                localStorage.setItem('userId', data.user_id); 
                 navigate('/library');
             
             } else {
@@ -36,6 +37,17 @@ function Login() {
     };
 
     return (
+        <>
+        {/* Nav bar*/}
+        <Navbar bg="dark" variant="dark" expand="lg">
+            <Container>
+                <Navbar.Brand href="#home">Game Library</Navbar.Brand>
+                <Nav className="ms-auto">
+                    <Nav.Link href="/">Back to Home Page</Nav.Link>
+                </Nav>
+            </Container>
+        </Navbar>
+
         <div className="p-5 text-center bg-light login-container">
             <h1>Signin</h1>
             {error && <div className="alert alert-danger">{error}</div>}
@@ -61,7 +73,7 @@ function Login() {
                 Signup
             </button>
         </div>
-
+        </>
     );
 }
 

@@ -24,8 +24,6 @@ function Home() {
         <Button onClick={navigateToSignUp}>SignUp</Button>
         </div>
       </header>
-
-      {/* Additional content goes here */}
     </Container>
   );
 }
