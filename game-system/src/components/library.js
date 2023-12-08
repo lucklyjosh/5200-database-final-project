@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, Nav, NavDropdown, Container, Row, Col, Card, Modal, Button, Form } from 'react-bootstrap';
-import defaultImage from './default.jpg'; // Adjust the path if your file structure is different
+
 import { useNavigate } from 'react-router-dom';
 import ReactStars from 'react-rating-stars-component';
 import "./library.css"
@@ -29,6 +29,7 @@ const Library = () => {
     const [filteredGames, setFilteredGames] = useState(allGames);
     const navigate = useNavigate();
 
+    
     useEffect(() => {
         fetch('http://127.0.0.1:5000/game')
             .then(response => response.json())

@@ -374,18 +374,21 @@ def add_game_to_favorites(user_id, game_id):
 def get_user_favorite_games(user_id):
     try:
         favorite_games = UserFavoriteGames.query.filter_by(user_id=user_id).join(Game).join(Publisher).all()
-        games_data = [
-            {
+        games_data = []
+        for fg in favorite_games:
+            game_images = GameImage.query.filter_by(game_id=fg.game.game_id).join(Image, GameImage.image_id == Image.image_id).all()
+            images = [{'image_id': gi.image.image_id, 'image_address': gi.image.image_address, 'image_description': gi.image.image_description} for gi in game_images]
+            games_data.append({
                 'game_id': fg.game.game_id,
                 'title': fg.game.game_title,
                 'release_date': fg.game.release_date.isoformat() if fg.game.release_date else None,
                 'publisher': fg.game.publisher.publisher_name if fg.game.publisher else None,
-            }
-            for fg in favorite_games
-        ]
+                'images': images
+            })
         return jsonify(games_data), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/user/<int:user_id>/favorite/<int:game_id>', methods=['DELETE'])
 def delete_favorite_game(user_id, game_id):
