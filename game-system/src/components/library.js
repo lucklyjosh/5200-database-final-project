@@ -7,21 +7,21 @@ import "./library.css"
 
 const Library = () => {
 
-    const [allGames, setAllGames] = useState([]); // 用于存储从数据库中获取的所有游戏
-    const [games, setGames] = useState([]); // 用于存储用户界面上显示的游戏
-    const [selectedGame, setSelectedGame] = useState(null); // 当前选中的游戏
-    const [showModal, setShowModal] = useState(false); // 控制模态框的显示
+    const [allGames, setAllGames] = useState([]); // Store all the games from database
+    const [games, setGames] = useState([]); // Store games show on the library
+    const [selectedGame, setSelectedGame] = useState(null); // Current selected game
+    const [showModal, setShowModal] = useState(false);
     const [showGameModal, setShowGameModal] = useState(false);
-    const [showAddModal, setShowAddModal] = useState(false); // 控制添加游戏模态框的状态
-    const [newGame, setNewGame] = useState({ title: '', imageUrl: '', description: '' }); // 新游戏表单的状态
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newGame, setNewGame] = useState({ title: '', imageUrl: '', description: '' });
     const [errorMessage, setErrorMessage] = useState('');
     const [rating, setRating] = useState(0); // 状态变量用于存储评分
-    const [comment, setComment] = useState("");// 状态变量用于存储评论
-    const [reviews, setReviews] = useState([]); // 用于存储评论数据
+    const [comment, setComment] = useState("");// Comment
+    const [reviews, setReviews] = useState([]); // Store review data
 
     const [editingReviewId, setEditingReviewId] = useState(null);
     const [editingReviewText, setEditingReviewText] = useState('');
-    const currentUserID = localStorage.getItem('userId'); // 获取当前用户ID
+    const currentUserID = localStorage.getItem('userId'); // Current user id
     const [genres, setGenres] = useState([]);
     const [platforms, setPlatforms] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -65,8 +65,87 @@ const Library = () => {
 
 
     const handleRatingChange = (newRating) => {
+        
         setRating(newRating);
+        handleSubmitRating(newRating);
+        const game_id = selectedGame.game_id;
+        const user_id = localStorage.getItem('userId');
+
+        fetch(`http://127.0.0.1:5000/game/${game_id}/rate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id, rating: newRating }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to submit rating');
+                }
+            })
+            .then(data => {
+                alert('Rating submitted successfully');
+                console.log(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting rating: ' + error.message);
+            });
+            
     };
+
+    const handleSubmitRating = async (ratingValue) => {
+        const userId = localStorage.getItem('userId');
+        const ratingData = {
+            user_id: userId,
+            rating: ratingValue,
+            game_id: selectedGame.game_id, // 假设 selectedGame 包含当前游戏的信息
+        };
+    
+        try {
+            const response = await fetch(`http://127.0.0.1:5000/game/${selectedGame.game_id}/rate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(ratingData)
+            });
+    
+            const data = await response.json();
+            if (response.ok) {
+                console.log('Rating submitted successfully:', data);
+                // 处理成功逻辑
+            } else {
+                console.error('Failed to submit rating:', data.error);
+                // 处理失败逻辑
+            }
+        } catch (error) {
+            console.error('Error submitting rating:', error);
+        }
+    };
+
+    const fetchRating = (gameId, userId) => {
+        fetch(`http://127.0.0.1:5000/game/${gameId}/rating/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.rating !== undefined) {
+                    setRating(data.rating);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    };
+
+    // 在 useEffect 或相关函数中调用 fetchRating
+    useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        if (selectedGame && userId) {
+            fetchRating(selectedGame.game_id, userId);
+        }
+    }, [selectedGame]);
+
+    
 
     const handleCommentChange = (event) => {
         setComment(event.target.value);
@@ -171,9 +250,9 @@ const Library = () => {
             setErrorMessage('This game is already in your library');
         } else {
             // if not add it
-            setGames((prevGames) => [...prevGames, game]); 
+            setGames((prevGames) => [...prevGames, game]);
             handleAddGameToFavorites(game); // Add to user's info database table
-            setShowAddModal(false); 
+            setShowAddModal(false);
             setErrorMessage('');
         }
     };
@@ -181,22 +260,22 @@ const Library = () => {
 
     const handleDeleteGame = (game) => {
         const userId = localStorage.getItem('userId'); // 获取当前用户ID
-    
+
         fetch(`http://127.0.0.1:5000/user/${userId}/favorite/${game.game_id}`, {
             method: 'DELETE',
         })
-        .then(response => {
-            if (response.ok) {
-                // 删除成功，更新前端状态
-                setGames(previousGames => previousGames.filter(g => g.game_id !== game.game_id));
-                console.log('Favorite game deleted successfully');
-            } else {
-                throw new Error('Failed to delete the favorite game');
-            }
-        })
-        .catch(error => console.error('Error:', error));
+            .then(response => {
+                if (response.ok) {
+                    // 删除成功，更新前端状态
+                    setGames(previousGames => previousGames.filter(g => g.game_id !== game.game_id));
+                    console.log('Favorite game deleted successfully');
+                } else {
+                    throw new Error('Failed to delete the favorite game');
+                }
+            })
+            .catch(error => console.error('Error:', error));
     };
-    
+
 
 
     // show Game Modal
@@ -267,7 +346,7 @@ const Library = () => {
         );
         if (selectedGenres.length > 0) {
             filtered = filtered.filter(game =>
-                selectedGenres.includes(game.genre_id) 
+                selectedGenres.includes(game.genre_id)
             );
         }
         console.log("Filtered Games:", filtered);
@@ -435,32 +514,37 @@ const Library = () => {
                     <ReactStars
                         count={5}
                         onChange={handleRatingChange}
+                        value={rating} // 确保这里添加了 value 属性
                         size={24}
                         activeColor="#ffd700"
                     />
+
                     <div className="reviews">
                         {reviews.map((review) => (
                             <div key={review.review_id} className="review-item">
-                                <strong>{review.username}</strong>: {review.review_text}
-                                {review.review_id === editingReviewId ? (
-                                    <div>
-                                        <textarea value={editingReviewText} onChange={(e) => setEditingReviewText(e.target.value)} />
-                                        <Button onClick={submitEdit}>Submit</Button>
-                                        <Button onClick={() => setEditingReviewId(null)}>Cancel</Button>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        {parseInt(review.user_id, 10) === parseInt(localStorage.getItem('userId'), 10) && (
-                                            <div className="buttons-container">
+                                <div className="review-content">
+                                    <strong>{review.username}</strong>: {review.review_text}
+                                </div>
+                                {parseInt(review.user_id, 10) === parseInt(localStorage.getItem('userId'), 10) && (
+                                    <div className="buttons-container">
+                                        {review.review_id === editingReviewId ? (
+                                            <>
+                                                <textarea value={editingReviewText} onChange={(e) => setEditingReviewText(e.target.value)} />
+                                                <Button onClick={submitEdit}>Submit</Button>
+                                                <Button onClick={() => setEditingReviewId(null)}>Cancel</Button>
+                                            </>
+                                        ) : (
+                                            <>
                                                 <Button onClick={() => startEdit(review)}>Edit</Button>
                                                 <Button variant="danger" onClick={() => deleteReview(review.review_id)}>Delete</Button>
-                                            </div>
+                                            </>
                                         )}
                                     </div>
                                 )}
                             </div>
                         ))}
                     </div>
+
 
                     <Form>
                         <Form.Group className="mb-3" controlId="comment">
@@ -474,7 +558,7 @@ const Library = () => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="danger" onClick={() => handleDeleteGame(selectedGame)}>
-                        Delete
+                        Delete this game
                     </Button>
                     <Button variant="secondary" onClick={closeModal}>
                         Close

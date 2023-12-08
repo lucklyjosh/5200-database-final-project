@@ -1,0 +1,32 @@
+.home-background {
+    background: url('background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .home-container {
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明覆盖层 */
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
+  .home-title, .home-subtitle {
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  
+  .home-button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 20px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .home-button:hover {
+    background-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+  

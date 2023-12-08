@@ -65,7 +65,7 @@ class Rating(db.Model):
     rating_id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    rating_value = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
     rating_date = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 class Genre(db.Model):
@@ -290,7 +290,7 @@ def add_review():
     new_review = Review(
         game_id=data['game_id'],
         user_id=data['user_id'],
-        # rating=data['rating'],
+
         review_text=data['review_text']
     )
     db.session.add(new_review)
@@ -301,14 +301,12 @@ def add_review():
 
 @app.route('/game/review', methods=['GET'])
 def get_reviews():
-    # 实现获取评论的逻辑
-    reviews = Review.query.all()  # 示例查询
-    return jsonify([review.to_dict() for review in reviews])  # 假设 Review 有一个 to_dict 方法
+
+    reviews = Review.query.all()  
+    return jsonify([review.to_dict() for review in reviews]) 
 
 @app.route('/game/<int:game_id>/reviews', methods=['GET'])
 def get_game_reviews(game_id):
-    # 这里假设你有一种方法来获取特定游戏的评论
-    # 以及评论对应的用户信息（如用户名）
     reviews = Review.query.filter_by(game_id=game_id).all()
     reviews_data = []
     for review in reviews:
@@ -317,7 +315,6 @@ def get_game_reviews(game_id):
             "username": user.username,
             "review_text": review.review_text,
             "review_id": review.review_id,
-            # "rating": review.rating,  # 如果有评分系统的话
             "user_id": user.user_id
         })
     return jsonify(reviews_data)
@@ -421,6 +418,35 @@ def delete_favorite_game(user_id, game_id):
     else:
         return jsonify({'error': 'Favorite game not found'}), 404
 
+@app.route('/game/<int:game_id>/rate', methods=['POST'])
+def rate_game(game_id):
+    try:
+        data = request.json
+        user_id = data['user_id']
+        rating = data['rating']
+
+        # 检查是否已经有评分
+        existing_rating = Rating.query.filter_by(game_id=game_id, user_id=user_id).first()
+        if existing_rating:
+            existing_rating.rating = rating
+        else:
+            new_rating = Rating(game_id=game_id, user_id=user_id, rating=rating)
+            db.session.add(new_rating)
+    
+        db.session.commit()
+        return jsonify({'message': 'Rating updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/game/<int:game_id>/rating/<int:user_id>', methods=['GET'])
+def get_rating(game_id, user_id):
+    rating = Rating.query.filter_by(game_id=game_id, user_id=user_id).first()
+    if rating:
+        return jsonify({'rating': rating.rating}), 200
+    else:
+        return jsonify({'rating': 0}), 200 
 
 
 if __name__ == '__main__':

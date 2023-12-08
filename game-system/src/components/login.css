@@ -1,13 +1,36 @@
+/* login.css */
 .login-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full viewport height */
-  }
-  
-  .login-input {
-    width: 300px; /* Adjust the width as needed */
-    margin-bottom: 10px; /* Space between elements */
-  }
-  
+  background-color: rgba(255, 255, 255, 0.8); 
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-input {
+  margin-bottom: 1.5rem;
+}
+
+.login-header, .signup-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+body {
+  background-image: url('background.jpg'); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
