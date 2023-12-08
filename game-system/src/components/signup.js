@@ -11,7 +11,6 @@ const SignUp = () => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        // 发送请求到后端API进行注册
         fetch('http://127.0.0.1:5000/signup', {
             method: 'POST',
             headers: {
@@ -22,10 +21,8 @@ const SignUp = () => {
             .then(response => response.json())
             .then(data => {
                 if (data.message === 'User registered successfully') {
-                    // 注册成功，跳转到登录页面
                     navigate('/login');
                 } else {
-                    // 处理错误，例如显示错误消息
                     console.error('Signup failed:', data.message);
                 }
             })
@@ -55,15 +52,7 @@ const SignUp = () => {
                         placeholder="Username"
                     />
                 </div>
-                {/* <div className="form-group mb-3">
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="form-control text-center"
-                        placeholder="Email"
-                    />
-                </div> */}
+
                 <div className="form-group mb-3">
                     <input
                         type="password"

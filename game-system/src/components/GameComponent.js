@@ -8,7 +8,6 @@ function GameComponent() {
     try {
       await addGame({ name: gameName });
       alert('Game added successfully');
-      // 这里可以添加更多的逻辑，例如刷新游戏列表
     } catch (error) {
       alert('Error adding game');
     }
@@ -18,7 +17,6 @@ function GameComponent() {
     try {
       await deleteGame(gameId);
       alert('Game deleted successfully');
-      // 这里可以添加更多的逻辑
     } catch (error) {
       alert('Error deleting game');
     }
@@ -33,7 +31,6 @@ function GameComponent() {
         placeholder="Enter game name"
       />
       <button onClick={handleAddGame}>Add Game</button>
-      {/* 这里可以添加游戏列表和删除按钮 */}
     </div>
   );
 }

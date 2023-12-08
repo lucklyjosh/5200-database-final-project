@@ -8,7 +8,7 @@
   }
   
   .home-container {
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明覆盖层 */
+    background-color: rgba(0, 0, 0, 0.5); 
     padding: 20px;
     border-radius: 10px;
   }

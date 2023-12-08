@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar, Nav, NavDropdown, Container, Row, Col, Card, Modal, Button, Form } from 'react-bootstrap';
+import { Navbar, Nav, Container, Row, Col, Card, Modal, Button, Form } from 'react-bootstrap';
 
 import { useNavigate } from 'react-router-dom';
 import ReactStars from 'react-rating-stars-component';
@@ -15,7 +15,7 @@ const Library = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newGame, setNewGame] = useState({ title: '', imageUrl: '', description: '' });
     const [errorMessage, setErrorMessage] = useState('');
-    const [rating, setRating] = useState(0); // 状态变量用于存储评分
+    const [rating, setRating] = useState(0); 
     const [comment, setComment] = useState("");// Comment
     const [reviews, setReviews] = useState([]); // Store review data
 
@@ -383,13 +383,11 @@ const Library = () => {
             <Container>
                 <Row xs={1} md={2} lg={4} className="g-4 mt-3">
                     {games.map((game) => {
-                        // 在这里添加日志输出
                         console.log(`Game: ${game.title}, Image URL: ${game.images && game.images.length > 0 ? game.images[0].image_address : 'No image'}`);
 
                         return (
                             <Col key={game.game_id} onClick={() => openModal(game)}>
                                 <Card className="h-100 cursor-pointer game-card">
-                                    {/* 只有当game.images存在且有元素时才显示图片 */}
                                     {game.images && game.images.length > 0 &&
                                         <Card.Img variant="top" src={game.images[0].image_address} />
                                     }

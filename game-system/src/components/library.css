@@ -4,8 +4,8 @@
 
 .review-item {
     display: flex;
-    justify-content: space-between; /* 使内容和按钮分布在两端 */
-    align-items: center; /* 垂直居中 */
+    justify-content: space-between; 
+    align-items: center; 
     border: 1px solid #ddd;
     padding: 15px;
     margin-bottom: 10px;
@@ -15,13 +15,13 @@
 }
 
 .review-content {
-    flex-grow: 1; /* 允许评论内容占据多余空间 */
-    margin-right: 10px; /* 添加一些右边距避免紧贴按钮 */
+    flex-grow: 1; 
+    margin-right: 10px; 
 }
 
 .buttons-container {
     display: flex;
-    gap: 10px; /* 按钮之间的间隙 */
+    gap: 10px; 
 }
 
 
