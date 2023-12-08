@@ -28,13 +28,15 @@ CREATE TABLE `game` (
   `game_id` int NOT NULL,
   `game_title` varchar(255) NOT NULL,
   `release_date` date DEFAULT NULL,
-  `publisher_id` int NOT NULL,
-  `genre_id` int NOT NULL,
+  `publisher_id` int DEFAULT NULL,
+  `genre_id` int DEFAULT NULL,
+  `image_id` int DEFAULT NULL,
   PRIMARY KEY (`game_id`),
-  KEY `idx_game_publisher` (`publisher_id`),
-  KEY `idx_game_genre` (`genre_id`),
-  CONSTRAINT `game_ibfk_1` FOREIGN KEY (`publisher_id`) REFERENCES `publisher` (`publisher_id`),
-  CONSTRAINT `game_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genre` (`genre_id`)
+  KEY `publisher_id` (`publisher_id`),
+  KEY `genre_id` (`genre_id`),
+  KEY `image_id` (`image_id`),
+  CONSTRAINT `game_ibfk_1` FOREIGN KEY (`publisher_id`) REFERENCES `publisher` (`publisher_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `game_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genre` (`genre_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -44,89 +46,34 @@ CREATE TABLE `game` (
 
 LOCK TABLES `game` WRITE;
 /*!40000 ALTER TABLE `game` DISABLE KEYS */;
-INSERT INTO `game` VALUES (202301,'Destiny 2','2019-10-01',11001,1),(202302,'Cyberpunk 2077','2020-12-09',11002,2),(202303,'Call of Duty','2022-10-28',11003,3),(202304,'Hogwarts Legacy','2023-02-10',11004,4),(202305,'Lost Ark','2023-02-11',11005,5),(202306,'DOTA 2','2013-09-07',11006,6),(202307,'Born of Bread','2023-12-05',11007,7),(202308,'Civilization VI','2016-12-21',11008,8),(202309,'Sims 4','2014-09-02',11009,5),(202310,'Backpack Hero','2023-11-14',11010,5),(202311,'Plant vs. Zombie','2009-05-05',11011,4),(202312,'Grand Theft Auto V','2015-04-14',11012,6),(202313,'Dave the Diver','2023-06-28',11013,7),(202314,'It Takes Two','2021-05-26',11014,8),(202315,'BattleBlock Theater','2014-05-15',11015,3);
+INSERT INTO `game` VALUES (202301,'Destiny 2','2010-01-19',11001,1,1),(202302,'Cyberpunk 2077','2012-09-20',11002,2,2),(202303,'Call of Duty','2022-10-28',11003,3,3),(202304,'Hogwarts Legacy','0002-10-23',11004,4,4),(202305,'Lost Ark','0002-11-23',11005,5,5),(202306,'DOTA 2','0009-07-13',11006,6,6),(202307,'Born of Bread','2012-05-23',11007,7,7),(202308,'Civilization VI','2016-12-21',11008,8,8),(202309,'Sims 4','0009-02-14',11009,3,9),(202310,'Backpack Hero','2023-11-14',11010,5,10),(202311,'Plant vs. Zombie','0005-05-09',11011,4,11),(202312,'Grand Theft Auto V','2015-04-14',11012,6,12),(202313,'Dave the Diver','2023-06-28',11013,7,13),(202314,'It Takes Two','2021-05-26',11014,8,14),(202315,'BattleBlock Theater','2014-05-15',11015,3,15);
 /*!40000 ALTER TABLE `game` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `GameLanguage`
+-- Table structure for table `GameImage`
 --
 
-DROP TABLE IF EXISTS `GameLanguage`;
+DROP TABLE IF EXISTS `GameImage`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `GameLanguage` (
+CREATE TABLE `GameImage` (
   `game_id` int NOT NULL,
-  `language_id` int NOT NULL,
-  PRIMARY KEY (`game_id`,`language_id`),
-  KEY `idx_game_language` (`language_id`),
-  CONSTRAINT `gamelanguage_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`),
-  CONSTRAINT `gamelanguage_ibfk_2` FOREIGN KEY (`language_id`) REFERENCES `languages` (`language_id`)
+  `image_id` int NOT NULL,
+  PRIMARY KEY (`game_id`,`image_id`),
+  KEY `image_id` (`image_id`),
+  CONSTRAINT `gameimage_ibfk_2` FOREIGN KEY (`image_id`) REFERENCES `images` (`image_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `GameLanguage`
+-- Dumping data for table `GameImage`
 --
 
-LOCK TABLES `GameLanguage` WRITE;
-/*!40000 ALTER TABLE `GameLanguage` DISABLE KEYS */;
-INSERT INTO `GameLanguage` VALUES (202301,1),(202303,1),(202308,1),(202312,1),(202314,1),(202302,2),(202304,2),(202307,2),(202309,2),(202305,3),(202306,4),(202310,6),(202311,7),(202313,8),(202315,9);
-/*!40000 ALTER TABLE `GameLanguage` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `GameMedia`
---
-
-DROP TABLE IF EXISTS `GameMedia`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `GameMedia` (
-  `game_id` int NOT NULL,
-  `media_id` int NOT NULL,
-  PRIMARY KEY (`game_id`,`media_id`),
-  KEY `media_id` (`media_id`),
-  CONSTRAINT `gamemedia_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`),
-  CONSTRAINT `gamemedia_ibfk_2` FOREIGN KEY (`media_id`) REFERENCES `media` (`media_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `GameMedia`
---
-
-LOCK TABLES `GameMedia` WRITE;
-/*!40000 ALTER TABLE `GameMedia` DISABLE KEYS */;
-INSERT INTO `GameMedia` VALUES (202304,44001),(202304,44002);
-/*!40000 ALTER TABLE `GameMedia` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `GamePlatform`
---
-
-DROP TABLE IF EXISTS `GamePlatform`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `GamePlatform` (
-  `game_id` int NOT NULL,
-  `platform_id` int NOT NULL,
-  PRIMARY KEY (`game_id`,`platform_id`),
-  KEY `idx_game_platform` (`platform_id`),
-  CONSTRAINT `gameplatform_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`),
-  CONSTRAINT `gameplatform_ibfk_2` FOREIGN KEY (`platform_id`) REFERENCES `platform` (`platform_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `GamePlatform`
---
-
-LOCK TABLES `GamePlatform` WRITE;
-/*!40000 ALTER TABLE `GamePlatform` DISABLE KEYS */;
-INSERT INTO `GamePlatform` VALUES (202301,1),(202302,1),(202303,1),(202305,1),(202306,1),(202307,1),(202308,1),(202310,1),(202312,1),(202313,1),(202314,1),(202315,1),(202304,2),(202309,2),(202311,2);
-/*!40000 ALTER TABLE `GamePlatform` ENABLE KEYS */;
+LOCK TABLES `GameImage` WRITE;
+/*!40000 ALTER TABLE `GameImage` DISABLE KEYS */;
+INSERT INTO `GameImage` VALUES (202301,1),(202302,2),(202303,3),(202304,4),(202305,5),(202306,6),(202307,7),(202308,8),(202309,9),(202310,10),(202311,11),(202312,12),(202313,13),(202314,14),(202315,15);
+/*!40000 ALTER TABLE `GameImage` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -154,6 +101,33 @@ INSERT INTO `genre` VALUES (1,'Action'),(2,'Adventure'),(3,'RPG'),(4,'Strategy')
 UNLOCK TABLES;
 
 --
+-- Table structure for table `images`
+--
+
+DROP TABLE IF EXISTS `images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `images` (
+  `image_id` int NOT NULL AUTO_INCREMENT,
+  `image_address` varchar(255) NOT NULL,
+  `image_description` text,
+  `game_id` int DEFAULT NULL,
+  PRIMARY KEY (`image_id`),
+  KEY `game_id` (`game_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `images`
+--
+
+LOCK TABLES `images` WRITE;
+/*!40000 ALTER TABLE `images` DISABLE KEYS */;
+INSERT INTO `images` VALUES (1,'https://storage.googleapis.com/gameimagesss/destiny2.png','\"Destiny 2\"',202301),(2,'https://storage.googleapis.com/gameimagesss/cyberpunk2077.png','\"Cyberpunk 2077\"',202302),(3,'https://storage.googleapis.com/gameimagesss/callofduty.png','\"Call of Duty\"',202303),(4,'https://storage.googleapis.com/gameimagesss/hogwartslegacy.png','\"Hogwarts Legacy\"',202304),(5,'https://storage.googleapis.com/gameimagesss/lostark.png','\"Lost Ark\"',202305),(6,'https://storage.googleapis.com/gameimagesss/dota2.png','\"DOTA 2\"',202306),(7,'https://storage.googleapis.com/gameimagesss/bornofbread.png','\"Born of Bread\"',202307),(8,'https://storage.googleapis.com/gameimagesss/civilizationvi.png','\"Civilization VI\"',202308),(9,'https://storage.googleapis.com/gameimagesss/sims4.png','\"Sims 4\"',202309),(10,'https://storage.googleapis.com/gameimagesss/backpackhero.png','\"Backpack Hero\"',202310),(11,'https://storage.googleapis.com/gameimagesss/plantvszombie.png','\"Plant vs. Zombie\"',202311),(12,'https://storage.googleapis.com/gameimagesss/grandtheftautov.png','\"Grand Theft Auto V\"',202312),(13,'https://storage.googleapis.com/gameimagesss/davethediver.png','\"Dave the Diver\"',202313),(14,'https://storage.googleapis.com/gameimagesss/ittakestwo.png','\"It Takes Two\"',202314),(15,'https://storage.googleapis.com/gameimagesss/battleblocktheater.png','\"BattleBlock Theater\"',202315);
+/*!40000 ALTER TABLE `images` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `languages`
 --
 
@@ -173,57 +147,8 @@ CREATE TABLE `languages` (
 
 LOCK TABLES `languages` WRITE;
 /*!40000 ALTER TABLE `languages` DISABLE KEYS */;
-INSERT INTO `languages` VALUES (1,'English,French,Italian'),(2,'English,French,German'),(3,'English,Spanish'),(4,'English,Bulgarian'),(5,'English,Italian,German'),(6,'English,German,Czech'),(7,'English'),(8,'English,Korean,Japanese'),(9,'English,French,Spanish');
+INSERT INTO `languages` VALUES (1,'English'),(2,'English,Bulgarian'),(3,'English,French,German'),(4,'English,French,Italian'),(5,'English,French,Spanish'),(6,'English,German,Czech'),(7,'English,Italian,German'),(8,'English,Korean,Japanese'),(9,'English,Spanish');
 /*!40000 ALTER TABLE `languages` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `media`
---
-
-DROP TABLE IF EXISTS `media`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `media` (
-  `media_id` int NOT NULL,
-  `media_type` varchar(100) DEFAULT NULL,
-  `media_name` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`media_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `media`
---
-
-LOCK TABLES `media` WRITE;
-/*!40000 ALTER TABLE `media` DISABLE KEYS */;
-INSERT INTO `media` VALUES (44001,'movie','Harry Potter'),(44002,'book','Harry Potter');
-/*!40000 ALTER TABLE `media` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `operating_system`
---
-
-DROP TABLE IF EXISTS `operating_system`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `operating_system` (
-  `os_id` int NOT NULL AUTO_INCREMENT,
-  `os_name` varchar(100) NOT NULL,
-  PRIMARY KEY (`os_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `operating_system`
---
-
-LOCK TABLES `operating_system` WRITE;
-/*!40000 ALTER TABLE `operating_system` DISABLE KEYS */;
-INSERT INTO `operating_system` VALUES (1,'Windows'),(2,'Windows, MacOS'),(3,'Windows, MacOS,Linux');
-/*!40000 ALTER TABLE `operating_system` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -251,32 +176,6 @@ INSERT INTO `platform` VALUES (1,'Steam'),(2,'Steam,Origin'),(3,'Steam,Uplay');
 UNLOCK TABLES;
 
 --
--- Table structure for table `PlatformOperatingSystem`
---
-
-DROP TABLE IF EXISTS `PlatformOperatingSystem`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `PlatformOperatingSystem` (
-  `platform_id` int NOT NULL,
-  `os_id` int NOT NULL,
-  PRIMARY KEY (`platform_id`,`os_id`),
-  KEY `os_id` (`os_id`),
-  CONSTRAINT `platformoperatingsystem_ibfk_1` FOREIGN KEY (`platform_id`) REFERENCES `platform` (`platform_id`),
-  CONSTRAINT `platformoperatingsystem_ibfk_2` FOREIGN KEY (`os_id`) REFERENCES `operating_system` (`os_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `PlatformOperatingSystem`
---
-
-LOCK TABLES `PlatformOperatingSystem` WRITE;
-/*!40000 ALTER TABLE `PlatformOperatingSystem` DISABLE KEYS */;
-/*!40000 ALTER TABLE `PlatformOperatingSystem` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `publisher`
 --
 
@@ -285,7 +184,7 @@ DROP TABLE IF EXISTS `publisher`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `publisher` (
   `publisher_id` int NOT NULL,
-  `publisher_name` varchar(255) NOT NULL,
+  `publisher_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`publisher_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -312,8 +211,8 @@ CREATE TABLE `PublisherLanguage` (
   `language_id` int NOT NULL,
   PRIMARY KEY (`publisher_id`,`language_id`),
   KEY `language_id` (`language_id`),
-  CONSTRAINT `publisherlanguage_ibfk_1` FOREIGN KEY (`publisher_id`) REFERENCES `publisher` (`publisher_id`),
-  CONSTRAINT `publisherlanguage_ibfk_2` FOREIGN KEY (`language_id`) REFERENCES `languages` (`language_id`)
+  CONSTRAINT `publisherlanguage_ibfk_1` FOREIGN KEY (`publisher_id`) REFERENCES `publisher` (`publisher_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `publisherlanguage_ibfk_2` FOREIGN KEY (`language_id`) REFERENCES `languages` (`language_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -323,6 +222,7 @@ CREATE TABLE `PublisherLanguage` (
 
 LOCK TABLES `PublisherLanguage` WRITE;
 /*!40000 ALTER TABLE `PublisherLanguage` DISABLE KEYS */;
+INSERT INTO `PublisherLanguage` VALUES (11002,1),(11007,1),(11014,1),(11001,2),(11010,2),(11012,2),(11015,2),(11003,3),(11013,3),(11005,4),(11004,5),(11006,6),(11011,7),(11008,8),(11009,9);
 /*!40000 ALTER TABLE `PublisherLanguage` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -342,8 +242,8 @@ CREATE TABLE `rating` (
   PRIMARY KEY (`rating_id`),
   KEY `game_id` (`game_id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `rating_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`),
-  CONSTRAINT `rating_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `rating_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `rating_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `rating_chk_1` CHECK (((`rating` >= 1) and (`rating` <= 5)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -373,8 +273,8 @@ CREATE TABLE `review` (
   PRIMARY KEY (`review_id`),
   KEY `game_id` (`game_id`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `review_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`),
-  CONSTRAINT `review_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `review_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `review_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -398,10 +298,13 @@ CREATE TABLE `users` (
   `user_id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `password_hash` varchar(255) DEFAULT NULL,
-  `date_joined` date DEFAULT NULL,
-  `last_login` datetime DEFAULT NULL,
-  PRIMARY KEY (`user_id`)
+  `password_hash` varchar(255) NOT NULL,
+  `game_id` int DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`),
+  KEY `game_id` (`game_id`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`game_id`) REFERENCES `game` (`game_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -462,7 +365,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `AddNewGame`(IN title VARCHAR(255), 
 BEGIN
     INSERT INTO game (game_title, release_date, developer_name, publisher_id, genre_id, category_id) 
     VALUES (title, releaseDate, developer, publisherId, genreId, categoryId);
-    -- Additional logic for inserting into other associated tables can be added here.
+    
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -603,4 +506,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-06  3:23:21
+-- Dump completed on 2023-12-07 21:36:38
