@@ -11,7 +11,6 @@ const Library = () => {
     const [games, setGames] = useState([]); // Store games show on the library
     const [selectedGame, setSelectedGame] = useState(null); // Current selected game
     const [showModal, setShowModal] = useState(false);
-    const [showGameModal, setShowGameModal] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newGame, setNewGame] = useState({ title: '', imageUrl: '', description: '' });
     const [errorMessage, setErrorMessage] = useState('');
