@@ -179,7 +179,7 @@ const Library = () => {
                 })
                 .then(data => {
                     console.log('Success:', data);
-                    // You might want to update state or UI based on the successful submission
+                    alert('Submitted successfully!');
                 })
                 .catch((error) => {
                     console.error('Error:', error);

@@ -94,7 +94,7 @@ class User(db.Model):
     __tablename__ = 'users'  
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
+    # email = db.Column(db.String(100), nullable=False)
     password_hash = db.Column(db.String(255))
     favorite_games = db.relationship('UserFavoriteGames', back_populates='user')
 class Image(db.Model):
@@ -254,22 +254,21 @@ def get_game_images(game_id):
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    data = request.json
-
-    # 检查用户名是否已存在
-    existing_user = User.query.filter_by(username=data['username']).first()
-    if existing_user:
-        return jsonify({'message': 'Username already exists'}), 400
-
     try:
+        data = request.json
+        existing_user = User.query.filter_by(username=data['username']).first()
+        if existing_user:
+            return jsonify({'message': 'Username already exists'}), 400
+
         hashed_password = generate_password_hash(data['password'])
-        new_user = User(username=data['username'], email=data['email'], password_hash=hashed_password)
+        new_user = User(username=data['username'], password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         return jsonify({'message': 'User registered successfully', 'user_id': new_user.user_id}), 201
-
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        app.logger.error(f'Signup error: {e}')  # 记录错误到日志
+        return jsonify({'error': 'Signup failed'}), 500
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -367,13 +366,13 @@ def get_platforms():
 @app.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
-    users_data = [{'user_id': user.user_id, 'username': user.username, 'email': user.email} for user in users]
+    users_data = [{'user_id': user.user_id, 'username': user.username} for user in users]
     return jsonify(users_data)
 
 @app.route('/user/<int:user_id>', methods=['GET'])
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
-    user_data = {'user_id': user.user_id, 'username': user.username, 'email': user.email}
+    user_data = {'user_id': user.user_id, 'username': user.username}
     return jsonify(user_data)
 
 # 添加游戏到用户收藏

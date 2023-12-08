@@ -5,7 +5,6 @@ import './login.css';
 
 const SignUp = () => {
     const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
@@ -18,7 +17,7 @@ const SignUp = () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, email, password }),
+            body: JSON.stringify({ username, password }),
         })
             .then(response => response.json())
             .then(data => {
@@ -56,7 +55,7 @@ const SignUp = () => {
                         placeholder="Username"
                     />
                 </div>
-                <div className="form-group mb-3">
+                {/* <div className="form-group mb-3">
                     <input
                         type="email"
                         value={email}
@@ -64,7 +63,7 @@ const SignUp = () => {
                         className="form-control text-center"
                         placeholder="Email"
                     />
-                </div>
+                </div> */}
                 <div className="form-group mb-3">
                     <input
                         type="password"
