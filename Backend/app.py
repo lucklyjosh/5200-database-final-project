@@ -39,13 +39,9 @@ class Game(db.Model):
     game_id = db.Column(db.Integer, primary_key=True)
     game_title = db.Column(db.String(255), nullable=False)
     release_date = db.Column(db.Date)
-    # developer_name = db.Column(db.String(255), nullable=False)
-    # publisher_id = db.Column(db.Integer, nullable=False)
     publisher_id = db.Column(db.Integer, db.ForeignKey('publisher.publisher_id'))
     publisher = db.relationship('Publisher', backref='games')
-    # category_id = db.Column(db.Integer, nullable=False)
     genre_id = db.Column(db.Integer, db.ForeignKey('genre.genre_id'), nullable=False)
-    # game_platforms = db.relationship('GamePlatform', backref='game')
     platforms = db.relationship('Platform', secondary=game_platform_table, back_populates='games')
     game_images = db.relationship('GameImage', back_populates='game')
     favorited_by = db.relationship('UserFavoriteGames', back_populates='game')
@@ -81,20 +77,13 @@ class Platform(db.Model):
     platform_id = db.Column(db.Integer, primary_key=True)
     platform_name = db.Column(db.String(255), nullable=False)
     games = db.relationship('Game', secondary=game_platform_table, back_populates='platforms')
-    # game_platforms = db.relationship('GamePlatform', backref='platform')
     def __repr__(self):
         return f'<Platform {self.platform_name}>'
-
-# class GamePlatform(db.Model):
-#     __tablename__ = 'gameplatform'
-#     game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
-#     platform_id = db.Column(db.Integer, db.ForeignKey('platform.platform_id'), primary_key=True)
 
 class User(db.Model):
     __tablename__ = 'users'  
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), nullable=False)
-    # email = db.Column(db.String(100), nullable=False)
     password_hash = db.Column(db.String(255))
     favorite_games = db.relationship('UserFavoriteGames', back_populates='user')
 class Image(db.Model):
@@ -108,18 +97,16 @@ class Image(db.Model):
         return f'<Image {self.image_id}>'
     
 class GameImage(db.Model):
-    __tablename__ = 'gameimage'
+    __tablename__ = 'GameImage'
     game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
     image_id = db.Column(db.Integer, db.ForeignKey('images.image_id'), primary_key=True)
     game = db.relationship('Game', back_populates='game_images')
     image = db.relationship('Image', back_populates='game_images')
 
 class UserFavoriteGames(db.Model):
-    __tablename__ = 'userfavoritegames'  # 确保这与您的实际表名匹配
+    __tablename__ = 'userfavoritegames'  
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.game_id'), primary_key=True)
-
-    # 可以添加关系来方便访问关联的 User 和 Game 对象
     user = db.relationship('User', back_populates='favorite_games')
     game = db.relationship('Game', back_populates='favorited_by')
 
@@ -140,11 +127,7 @@ def create_account():
         return jsonify({'message': 'General Ledger Account created successfully'}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
-# Create the tables in the database (Comment this out in production)
-# @app.before_first_request
-# def create_tables():
-#     db.create_all()
+
 
 # Basic route to test the setup
 @app.route('/')
@@ -214,7 +197,6 @@ def get_games():
                 }
             games_data[game.game_id]['platforms'].append(platform.platform_name)
 
-            # 获取每个游戏的图片信息
             images = GameImage.query.filter_by(game_id=game.game_id).join(Image).all()
             for game_image in images:
                 games_data[game.game_id]['images'].append({
@@ -222,7 +204,7 @@ def get_games():
                     'image_address': game_image.image.image_address,
                     'image_description': game_image.image.image_description
                 })
-
+        print(games_data)
         return jsonify(list(games_data.values())), 200
     except Exception as e:
         print(e)
@@ -252,6 +234,7 @@ def get_game_images(game_id):
 
 
 
+
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -266,7 +249,7 @@ def signup():
         db.session.commit()
         return jsonify({'message': 'User registered successfully', 'user_id': new_user.user_id}), 201
     except Exception as e:
-        app.logger.error(f'Signup error: {e}')  # 记录错误到日志
+        app.logger.error(f'Signup error: {e}') 
         return jsonify({'error': 'Signup failed'}), 500
 
 
@@ -327,7 +310,7 @@ def update_review(review_id):
     print("Received user_id:", data['user_id'])
     print("Review's user_id:", review.user_id)
 
-    # 可以添加检查确保只有评论的作者可以更新它
+    # Make sure only current user can edit or delete
     if str(review.user_id) != data.get('user_id'):
         return jsonify({'message': 'Unauthorized'}), 403
     
@@ -340,7 +323,7 @@ def delete_review(review_id):
     review = Review.query.get_or_404(review_id)
     data = request.get_json()
     
-    # 添加日志打印以检查接收到的数据
+    # Log to check data
     print("Received user_id:", data.get('user_id'))
     print("Review's user_id:", review.user_id)
 
@@ -375,7 +358,7 @@ def get_user(user_id):
     user_data = {'user_id': user.user_id, 'username': user.username}
     return jsonify(user_data)
 
-# 添加游戏到用户收藏
+# Add game to user library
 @app.route('/user/<int:user_id>/add_favorite/<int:game_id>', methods=['POST'])
 def add_game_to_favorites(user_id, game_id):
     try:
@@ -386,7 +369,7 @@ def add_game_to_favorites(user_id, game_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 获取用户的收藏游戏列表
+# Get user library
 @app.route('/user/<int:user_id>/favorites', methods=['GET'])
 def get_user_favorite_games(user_id):
     try:
@@ -395,10 +378,8 @@ def get_user_favorite_games(user_id):
             {
                 'game_id': fg.game.game_id,
                 'title': fg.game.game_title,
-                # 添加您想要返回的其他游戏信息
                 'release_date': fg.game.release_date.isoformat() if fg.game.release_date else None,
                 'publisher': fg.game.publisher.publisher_name if fg.game.publisher else None,
-                # 可以继续添加其他属性
             }
             for fg in favorite_games
         ]
@@ -408,7 +389,6 @@ def get_user_favorite_games(user_id):
 
 @app.route('/user/<int:user_id>/favorite/<int:game_id>', methods=['DELETE'])
 def delete_favorite_game(user_id, game_id):
-    # 在这里实现删除逻辑
     favorite_game = UserFavoriteGames.query.filter_by(user_id=user_id, game_id=game_id).first()
     if favorite_game:
         db.session.delete(favorite_game)
@@ -423,8 +403,6 @@ def rate_game(game_id):
         data = request.json
         user_id = data['user_id']
         rating = data['rating']
-
-        # 检查是否已经有评分
         existing_rating = Rating.query.filter_by(game_id=game_id, user_id=user_id).first()
         if existing_rating:
             existing_rating.rating = rating

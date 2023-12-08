@@ -27,18 +27,19 @@ const Library = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGenres, setSelectedGenres] = useState([]);
     const [filteredGames, setFilteredGames] = useState(allGames);
-
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetch('http://127.0.0.1:5000/game')
             .then(response => response.json())
             .then(data => {
+                data.forEach(game => {
+                    console.log(game.title + " image URL: ", game.images && game.images.length > 0 ? game.images[0].image_address : "No image");
+                });
                 if (Array.isArray(data)) {
                     console.log("Games:", data);
                     setAllGames(data);
-                    // 如果有平台信息，这里也设置平台信息
                     data.forEach(game => {
-                        // 假设后端返回的数据中包含平台信息
                         console.log(`Game: ${game.title}, Platform: ${game.platform_name}`);
                     });
                 } else {
@@ -65,7 +66,7 @@ const Library = () => {
 
 
     const handleRatingChange = (newRating) => {
-        
+
         setRating(newRating);
         handleSubmitRating(newRating);
         const game_id = selectedGame.game_id;
@@ -93,7 +94,7 @@ const Library = () => {
                 console.error('Error:', error);
                 alert('Error submitting rating: ' + error.message);
             });
-            
+
     };
 
     const handleSubmitRating = async (ratingValue) => {
@@ -101,9 +102,9 @@ const Library = () => {
         const ratingData = {
             user_id: userId,
             rating: ratingValue,
-            game_id: selectedGame.game_id, // 假设 selectedGame 包含当前游戏的信息
+            game_id: selectedGame.game_id,
         };
-    
+
         try {
             const response = await fetch(`http://127.0.0.1:5000/game/${selectedGame.game_id}/rate`, {
                 method: 'POST',
@@ -112,14 +113,12 @@ const Library = () => {
                 },
                 body: JSON.stringify(ratingData)
             });
-    
+
             const data = await response.json();
             if (response.ok) {
                 console.log('Rating submitted successfully:', data);
-                // 处理成功逻辑
             } else {
                 console.error('Failed to submit rating:', data.error);
-                // 处理失败逻辑
             }
         } catch (error) {
             console.error('Error submitting rating:', error);
@@ -137,7 +136,6 @@ const Library = () => {
             .catch(error => console.error('Error:', error));
     };
 
-    // 在 useEffect 或相关函数中调用 fetchRating
     useEffect(() => {
         const userId = localStorage.getItem('userId');
         if (selectedGame && userId) {
@@ -145,7 +143,7 @@ const Library = () => {
         }
     }, [selectedGame]);
 
-    
+
 
     const handleCommentChange = (event) => {
         setComment(event.target.value);
@@ -160,7 +158,6 @@ const Library = () => {
         const gameData = {
             game_id: selectedGame.game_id,
             user_id: userId,
-            // rating: rating,
             review_text: comment,
         };
         if (gameData.game_id && gameData.user_id) {
@@ -193,36 +190,16 @@ const Library = () => {
         }
     };
 
-    const handleAddToLibrary = (game) => {
-        // 检查游戏是否已在库中
-        const isGameInLibrary = games.some((libraryGame) => libraryGame.game_id === game.game_id);
 
-        if (isGameInLibrary) {
-            alert('Game is already added');
-            return;
-        }
 
-        // 添加游戏到用户界面
-        setGames([...games, game]);
-        handleAddGameToFavorites(game);
-        setShowAddModal(false); // 关闭模态框
-    };
 
-    // 处理过滤器逻辑
-    const handleFilter = (filterType) => {
-        console.log(filterType);
-        // 根据过滤类型更新游戏列表...
-    };
-
-    const navigate = useNavigate();
-    // 处理用户头像点击事件
     const handleAccountClick = (action) => {
         if (action === 'logout') {
             localStorage.removeItem('userId');
             navigate('/login');
         }
         console.log(action);
-        // 根据选择执行动作(如：退出登录、查看个人资料等)
+
     };
 
     const openModal = (game) => {
@@ -232,16 +209,10 @@ const Library = () => {
         setShowModal(true);
     };
 
-    // 关闭模态窗口的函数
+
     const closeModal = () => {
         setShowModal(false);
     }
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewGame({ ...newGame, [name]: value });
-    };
-
 
     const handleAddGame = (game) => {
         // Check game if already in
@@ -259,14 +230,13 @@ const Library = () => {
 
 
     const handleDeleteGame = (game) => {
-        const userId = localStorage.getItem('userId'); // 获取当前用户ID
+        const userId = localStorage.getItem('userId');
 
         fetch(`http://127.0.0.1:5000/user/${userId}/favorite/${game.game_id}`, {
             method: 'DELETE',
         })
             .then(response => {
                 if (response.ok) {
-                    // 删除成功，更新前端状态
                     setGames(previousGames => previousGames.filter(g => g.game_id !== game.game_id));
                     console.log('Favorite game deleted successfully');
                 } else {
@@ -340,18 +310,6 @@ const Library = () => {
             .catch(error => console.error('Error:', error));
     };
 
-    const filterGames = () => {
-        let filtered = allGames.filter(game =>
-            game.title.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        if (selectedGenres.length > 0) {
-            filtered = filtered.filter(game =>
-                selectedGenres.includes(game.genre_id)
-            );
-        }
-        console.log("Filtered Games:", filtered);
-        setFilteredGames(filtered);
-    };
 
 
     useEffect(() => {
@@ -391,9 +349,6 @@ const Library = () => {
     };
 
 
-
-
-
     useEffect(() => {
         const userId = localStorage.getItem('userId');
         if (userId) {
@@ -405,8 +360,6 @@ const Library = () => {
                 .catch(error => console.error('Error:', error));
         }
     }, []);
-
-
 
 
 
@@ -428,23 +381,33 @@ const Library = () => {
 
             <Container>
                 <Row xs={1} md={2} lg={4} className="g-4 mt-3">
-                    {games.map((game) => (
-                        <Col key={game.game_id} onClick={() => openModal(game)}>
-                            <Card className="h-100 cursor-pointer game-card">
-                                <Card.Img variant="top" src={game.imageUrl || defaultImage} />
-                                <Card.Body>
-                                    <Card.Title>{game.title}</Card.Title>
-                                </Card.Body>
-                                {game.user_id === localStorage.getItem('userId') && (
-                                    <div className="card-actions">
-                                        <button onClick={() => handleDeleteGame(game)}>Delete</button>
-                                    </div>
-                                )}
-                            </Card>
-                        </Col>
-                    ))}
+                    {games.map((game) => {
+                        // 在这里添加日志输出
+                        console.log(`Game: ${game.title}, Image URL: ${game.images && game.images.length > 0 ? game.images[0].image_address : 'No image'}`);
+
+                        return (
+                            <Col key={game.game_id} onClick={() => openModal(game)}>
+                                <Card className="h-100 cursor-pointer game-card">
+                                    {/* 只有当game.images存在且有元素时才显示图片 */}
+                                    {game.images && game.images.length > 0 &&
+                                        <Card.Img variant="top" src={game.images[0].image_address} />
+                                    }
+                                    <Card.Body>
+                                        <Card.Title>{game.title}</Card.Title>
+                                    </Card.Body>
+                                    {game.user_id === localStorage.getItem('userId') && (
+                                        <div className="card-actions">
+                                            <button onClick={() => handleDeleteGame(game)}>Delete</button>
+                                        </div>
+                                    )}
+                                </Card>
+                            </Col>
+                        );
+                    })}
                 </Row>
             </Container>
+
+            =
 
 
 
@@ -514,7 +477,7 @@ const Library = () => {
                     <ReactStars
                         count={5}
                         onChange={handleRatingChange}
-                        value={rating} // 确保这里添加了 value 属性
+                        value={rating}
                         size={24}
                         activeColor="#ffd700"
                     />
