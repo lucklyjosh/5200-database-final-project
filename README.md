@@ -10,7 +10,7 @@ Youtube:[https://youtu.be/zxi5wy2-n5M](https://youtu.be/yb8eTXv1eTQ?si=O1I_DgCY8
 Before you begin, ensure you have the following installed:
 - Python 3
 - Node.js and npm
-- MySQL
+- MySQL (Make sure you hit the lighting button in MySQL to create all tables and double-check it in schema)
 
 ## Backend Setup
 
